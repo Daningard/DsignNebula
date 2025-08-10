@@ -1,0 +1,372 @@
+/* Reset básico para evitar márgenes/paddings inesperados y usar Arial */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Estilo general del body */
+body {
+  background: #fff; /* Fondo blanco */
+  color: #222; /* Texto oscuro */
+  line-height: 1.5; /* Espaciado entre líneas */
+  padding: 20px; /* Espacio alrededor del contenido */
+}
+
+/* Cabecera principal con fondo azul corporativo */
+.header-principal {
+  display: flex;
+  align-items: center;
+  background-color: #00476B; /* azul corporativo */
+  padding: 20px 25px;
+  color: white;
+  gap: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+/* Contenedor del logo con tamaño fijo */
+.logo-container {
+  width: 1200px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+/* Logo ajustado al contenedor */
+.logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Texto al lado del logo */
+.titulo-texto h1 {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+/* Subtítulo más pequeño */
+.titulo-texto p {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+
+/* Encabezados con color azul primario y distintos tamaños */
+h1, h2, h3 {
+  font-weight: 700;
+  color: #00476B; /* Azul primario */
+  margin-bottom: 15px;
+}
+
+h1 {
+  font-size: 2.5rem; /* Grande para títulos principales */
+}
+
+h2 {
+  font-size: 1.8rem;
+  border-bottom: 2px solid #47D4CA; /* Línea turquesa debajo */
+  padding-bottom: 8px;
+  margin-top: 30px;
+}
+
+h3 {
+  font-size: 1.2rem;
+  font-style: italic;
+  color: #00476B;
+  margin-bottom: 10px;
+}
+
+/* Estilo general para botones */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 14px;
+  margin: 5px 3px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+  color: white;
+  background-color: #00476B; /* Azul primario */
+  box-shadow: 0 2px 5px rgb(0 71 107 / 0.3);
+}
+
+/* Hover para botón principal */
+button:hover {
+  background-color: #00c4b5; /* Azul más claro */
+}
+
+/* Botones para diferentes urgencias con colores y sombras distintos */
+button.urgente {
+  background-color: #f5a623; /* Naranja para urgencia */
+  color: #222;
+  box-shadow: 0 2px 5px rgb(245 166 35 / 0.3);
+}
+
+button.muyUrgente {
+  background-color: #fc7114; /* Rojo intenso para muy urgente */
+  box-shadow: 0 2px 5px rgba(255, 129, 10, 0.5);
+}
+
+button.prioritario {
+  background-color: #0cb664; /* Verde para prioridad máxima */
+  box-shadow: 0 2px 5px rgb(12 182 100 / 0.5);
+}
+
+/* Botón para cancelar, rojo oscuro */
+button.cancelar {
+  background-color: #b00020;
+  box-shadow: 0 2px 5px rgb(176 0 32 / 0.6);
+}
+
+/* Botones deshabilitados en gris claro y sin cursor pointer */
+button:disabled {
+  background-color: #999;
+  cursor: default;
+  box-shadow: none;
+  color: #eee;
+}
+
+/* Estilo para formularios: fondo gris claro, borde redondeado */
+form {
+  background: #f8f9fa;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+}
+
+/* Etiquetas dentro de formularios en azul y negrita */
+form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #00476B;
+}
+
+/* Inputs y selects con borde, relleno y transición al enfocarlos */
+form input[type="text"],
+form input[type="number"],
+form select {
+  width: 100%;
+  padding: 7px 12px;
+  margin-bottom: 15px;
+  border: 1.8px solid #cfd8dc;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #222;
+  transition: border-color 0.3s ease;
+}
+
+/* Al enfocar inputs/selects cambian borde a turquesa y sombra suave */
+form input[type="text"]:focus,
+form input[type="number"]:focus,
+form select:focus {
+  border-color: #00c4b5; /* Turquesa */
+  outline: none;
+  box-shadow: 0 0 6px rgba(71, 212, 202, 0.6);
+}
+
+/* Contenedor de proyectos con separación vertical */
+#proyectos {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Tarjeta de proyecto: blanco, borde gris, sombra suave */
+.proyecto {
+  background: #fff;
+  border: 2px solid #cfd8dc;
+  border-radius: 10px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.05);
+  transition: border-color 0.3s ease;
+}
+
+/* Bordes de proyectos según urgencia/prioridad */
+.proyecto.urgente {
+  border-color: #f5a623; /* naranja */
+}
+
+.proyecto.muyUrgente {
+  border-color: #e03e3e; /* rojo */
+}
+
+.proyecto.prioritario {
+  border-color: #0cb664; /* verde */
+}
+
+/* Encabezado de proyecto con nombre y estado alineados */
+.proyecto header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+/* Nombre cliente destacado */
+.proyecto .cliente {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #00476B;
+}
+
+/* Nombre del proyecto en cursiva y turquesa */
+.proyecto .nombre {
+  font-style: italic;
+  color: #00c4b5;
+}
+
+/* Estado actual en negrita y tamaño legible */
+.proyecto .estado {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+/* Notas internas en letra pequeña, cursiva y gris */
+.proyecto .notas-internas {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #555;
+}
+
+/* Lista de notas con sangría */
+.notas-internas ul {
+  padding-left: 20px;
+}
+
+.notas-internas li {
+  margin-bottom: 5px;
+}
+
+/* Nombre de estación destacado */
+.estacion-nombre {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #00476B;
+  margin-bottom: 10px;
+}
+
+/* Texto pequeño para detalles o aclaraciones */
+.small-text {
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Estilo para proyectos en pausa: fondo rosa pálido, borde rojo */
+.pausa {
+  background-color: #ffe5e5;
+  border: 1.5px solid #e03e3e;
+  padding: 7px 12px;
+  border-radius: 5px;
+  color: #b00020;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* Información de urgencia para texto debajo o etiquetas */
+.urgencia-info {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.urgencia-info span {
+  text-transform: capitalize;
+}
+
+/* Layout responsive: en pantallas anchas dos columnas para proyectos */
+@media (min-width: 700px) {
+  #proyectos {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .proyecto {
+    width: 48%;
+  }
+}
+
+.progressbar {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+  position: relative;
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+  cursor: default;
+}
+
+.step::before {
+  content: counter(step);
+  counter-increment: step;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  border: 2px solid #ccc;
+  display: block;
+  text-align: center;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background-color: white;
+  color: #ccc;
+  z-index: 1;
+  position: relative;
+}
+
+.step::after {
+  content: '';
+  position: absolute;
+  top: 15px; /* half circle height */
+  left: 50%;
+  height: 2px;
+  width: 100%;
+  background-color: #ccc;
+  z-index: 0;
+}
+
+.step:last-child::after {
+  content: none;
+}
+
+/* Steps completados */
+.step.completed::before {
+  border-color: #4caf50;
+  background-color: #4caf50;
+  color: white;
+}
+
+.step.completed::after {
+  background-color: #4caf50;
+}
+
+/* Paso actual */
+.step.current::before {
+  border-color: #00c4b5;
+  background-color: white;
+  color: #00c4b5;
+  font-weight: bold;
+}
+
+.step.current::after {
+  background-color: #00c4b5;
+}

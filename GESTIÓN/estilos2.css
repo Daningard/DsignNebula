@@ -1,0 +1,353 @@
+/* Reset básico */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Body más espacioso y limpio */
+body {
+  background: #fafafa;
+  color: #333;
+  line-height: 1.6;
+  padding: 40px 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Cabecera principal con más espacio y sombra sutil */
+.header-principal {
+  display: flex;
+  align-items: center;
+  background-color: #00476B;
+  padding: 30px 40px;
+  color: white;
+  gap: 20px;
+  border-radius: 8px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 15px rgba(0, 71, 107, 0.25);
+}
+
+/* Logo contenedor ancho adaptativo */
+.logo-container {
+  width: auto;
+  max-height: 60px;
+  flex-shrink: 0;
+}
+
+/* Logo con tamaño contenido */
+.logo {
+  max-width: 180px;
+  max-height: 60px;
+  object-fit: contain;
+}
+
+/* Título y subtítulo con más espacio y fuente moderna */
+.titulo-texto h1 {
+  font-weight: 700;
+  font-size: 2.2rem;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.titulo-texto p {
+  font-size: 1.1rem;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* Encabezados */
+h1, h2, h3 {
+  font-weight: 700;
+  color: #00476B;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 2rem;
+  border-bottom: 3px solid #47D4CA;
+  padding-bottom: 10px;
+  margin-top: 40px;
+}
+
+h3 {
+  font-size: 1.3rem;
+  font-style: italic;
+  margin-bottom: 15px;
+}
+
+/* Botones modernos, sin sombras pesadas, con transiciones suaves */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin: 10px 0px;
+  font-weight: 600;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+  font-size: 1rem;
+  color: white;
+  background-color: #00476B;
+
+}
+
+button:hover {
+  background-color: #00c4b5;
+
+}
+
+/* Colores de botones urgentes más planos y limpios */
+button.urgente {
+  background-color: #f5a623;
+  color: #222;
+  box-shadow: none;
+}
+
+button.muyUrgente {
+  background-color: #e03e3e;
+  box-shadow: none;
+}
+
+button.prioritario {
+  background-color: #0cb664;
+  box-shadow: none;
+}
+
+button.cancelar {
+  background-color: #b00020;
+  box-shadow: none;
+}
+
+/* Botones deshabilitados más suaves */
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  color: #777;
+  box-shadow: none;
+}
+
+/* Formularios con menos sombra, más espacio y bordes suaves */
+form {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 10px;
+  margin-bottom: 35px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #00476B;
+  font-size: 1.05rem;
+}
+
+form input[type="text"],
+form input[type="number"],
+form select {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  border: 1.5px solid #cfd8dc;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  color: #333;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+form input[type="text"]:focus,
+form input[type="number"]:focus,
+form select:focus {
+  border-color: #00c4b5;
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 196, 181, 0.35);
+}
+
+/* Contenedor proyectos ocupa 100% ancho y usa espacio vertical */
+#proyectos {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+}
+
+/* Tarjeta proyecto amplia, con espacio y sombra ligera */
+.proyecto {
+  background: white;
+  border: 1.5px solid #d1d9de;
+  border-radius: 15px;
+  padding: 25px 30px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  margin:10px;
+}
+
+/* Bordes colores según urgencia/prioridad, más sutiles */
+.proyecto.urgente {
+  border-color: #f5a623;
+}
+
+.proyecto.muyUrgente {
+  border-color: #e03e3e;
+}
+
+.proyecto.prioritario {
+  border-color: #0cb664;
+}
+
+/* Header de proyecto con separación y tipografía moderna */
+.proyecto header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 15px;
+}
+
+.proyecto .cliente {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #00476B;
+}
+
+.proyecto .nombre {
+  font-style: italic;
+  color: #00c4b5;
+  font-size: 1.15rem;
+}
+
+.proyecto .estado {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #222;
+}
+
+/* Notas internas más claras y limpias */
+.proyecto .notas-internas {
+  margin-top: 18px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #666;
+  line-height: 1.4;
+}
+
+.notas-internas ul {
+  padding-left: 20px;
+}
+
+.notas-internas li {
+  margin-bottom: 6px;
+}
+
+/* Pausa con estilo más discreto y moderno */
+.pausa {
+  background-color: #fff0f0;
+  border: 1.5px solid #e03e3e;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: #b00020;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+/* Urgencia-info más limpia */
+.urgencia-info {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.urgencia-info span {
+  text-transform: capitalize;
+}
+
+/* Barra de progreso más elegante */
+.progressbar {
+  display: flex;
+  justify-content: space-between;
+  margin: 30px 0;
+  position: relative;
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  color: #aaa;
+  cursor: default;
+  padding-top: 15px;
+  font-weight: 600;
+}
+
+.step::before {
+  content: counter(step);
+  counter-increment: step;
+  width: 35px;
+  height: 35px;
+  line-height: 35px;
+  border: 3px solid #ccc;
+  display: block;
+  text-align: center;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background-color: white;
+  color: #ccc;
+  position: relative;
+  z-index: 1;
+}
+
+.step::after {
+  content: '';
+  position: absolute;
+  top: 35px; /* mitad de 35px de altura del círculo */
+  left: 50%;
+  height: 3px;
+  width: 100%;
+  background-color: #ccc;
+  z-index: 0;
+}
+
+.step:last-child::after {
+  content: none;
+}
+
+/* Steps completados */
+.step.completed::before {
+  border-color: #4caf50;
+  background-color: #4caf50;
+  color: white;
+}
+
+.step.completed::after {
+  background-color: #4caf50;
+}
+
+/* Paso actual */
+.step.current::before {
+  border-color: #00c4b5;
+  background-color: white;
+  color: #00c4b5;
+  font-weight: 700;
+}
+
+.step.current::after {
+  background-color: #00c4b5;
+}
+
+/* Responsive: proyectos en columna completa siempre */
+@media (min-width: 700px) {
+  #proyectos {
+    flex-direction: column;
+  }
+}
