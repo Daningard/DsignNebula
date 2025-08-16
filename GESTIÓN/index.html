@@ -76,61 +76,76 @@
 </div>
 
 
-<div>
+
   <section id="projectsSection">
     <h2>Proyectos</h2>
     <div id="projectsContainer"></div>
   </section>
-</div>
+
 </main>
 
 <script>
+  // ====================================================================
+  //  CONFIGURACIÓN Y VARIABLES GLOBALES
+  // ====================================================================
+
   // Constantes para las estaciones
   const ESTACIONES = [
-    "Toma de contacto",
-    "Datos del proyecto",
-    "Presupuesto",
-    "En espera",
-    "En proceso",
-    "Realizado",
-    "Enviado al cliente",
-    "Cambios solicitados",
-    "Vuelta a enviar",
-    "Aprobado",
-    "Factura generada",
-    "Pagado",
-    "Enviado y finalizado"
+    "Toma de contacto", "Datos del proyecto", "Presupuesto", "En espera", "En proceso", "Realizado", "Enviado al cliente", "Cambios solicitados", "Vuelta a enviar", "Aprobado", "Factura generada", "Pagado", "Enviado y finalizado"
   ];
 
   // Urgencia y recargos
   const URGENCIA_RECARGOS = {
-    normal: 0,
-    urgente: 0.1,
-    muyUrgente: 0.2,
-    prioritario: 0.3
+    normal: 0, urgente: 0.1, muyUrgente: 0.2, prioritario: 0.3
   };
 
   // Límite de colas de urgencia (una por tipo)
   const MAX_EN_COLA = {
-    prioritario: 1,
-    muyUrgente: 1,
-    urgente: 1
+    prioritario: 1, muyUrgente: 1, urgente: 1
   };
 
-  // Carga proyectos de localStorage o inicia vacío
+  // Carga clientes y proyectos de localStorage o inicia vacíos
+  let clientes = JSON.parse(localStorage.getItem('dsign_clientes')) || [];
   let proyectos = JSON.parse(localStorage.getItem('dsign_proyectos')) || [];
 
-  // Guardar proyectos en localStorage
+  // ====================================================================
+  //  FUNCIONES DE GESTIÓN DE DATOS (GUARDAR Y CARGAR)
+  // ====================================================================
+
+  function saveClients() {
+    localStorage.setItem('dsign_clientes', JSON.stringify(clientes));
+  }
+
   function saveProjects() {
     localStorage.setItem('dsign_proyectos', JSON.stringify(proyectos));
   }
 
-  // Crear nuevo proyecto base
-  function crearProyecto(cliente, nombre, precioBase, urgencia) {
-    // Generar id único simple
-    const id = 'p' + Date.now();
+  // ====================================================================
+  //  FUNCIONES PARA CLIENTES
+  // ====================================================================
 
-    // Calcular precio con urgencia
+  function crearYGuardarCliente(nombre, cif, email, telefono, direccion) {
+    const nuevoCliente = {
+      id: 'c' + Date.now(),
+      nombre,
+      cif,
+      email,
+      telefono,
+      direccion,
+      fechaCreacion: new Date().toISOString()
+    };
+    clientes.push(nuevoCliente);
+    saveClients();
+    alert(`Cliente "${nombre}" guardado con éxito.`);
+    console.log('Clientes guardados:', clientes); // Para depuración
+  }
+
+  // ====================================================================
+  //  FUNCIONES PARA PROYECTOS
+  // ====================================================================
+
+  function crearProyecto(cliente, nombre, descripcion, precioBase, urgencia) {
+    const id = 'p' + Date.now();
     const incremento = URGENCIA_RECARGOS[urgencia] || 0;
     const precioConUrgencia = precioBase * (1 + incremento);
 
@@ -138,15 +153,16 @@
       id,
       cliente,
       nombre,
+      descripcion, // <-- AÑADIDO
       precioBase,
       urgencia,
       incremento,
       precioConUrgencia,
-      estado: 0, // "Toma de contacto"
+      estado: 0,
       notasInternas: [],
-      pausa: null, // {motivo, quien, fecha} o null
+      pausa: null,
       presupuesto: {
-        estado: 'pendiente', // pendiente, aceptado, cancelado
+        estado: 'pendiente',
         fecha: null,
         fechaAceptacion: null,
         fechaCancelacion: null
@@ -156,114 +172,106 @@
         solicitados: 0,
         gratis: 3
       },
-      confirmacionCliente: null, // null, aprobado, cambios
+      confirmacionCliente: null,
       facturado: false,
       pagado: false,
       entregado: false,
-      historicoEstados: [{ estado: 0, fecha: new Date().toISOString() }]
+      historicoEstados: [{
+        estado: 0,
+        fecha: new Date().toISOString()
+      }]
     };
   }
 
-  // Validar colas de urgencia
   function puedeAñadirCola(urgencia) {
     if (urgencia === 'normal') return true;
-
-    // Contar proyectos en cola con urgencia igual
     const enCola = proyectos.filter(p => p.estado === 3 && p.urgencia === urgencia).length;
     return enCola < MAX_EN_COLA[urgencia];
   }
 
-  // Agregar proyecto a la cola (estado 3)
   function agregarACola(proyecto) {
     if (!puedeAñadirCola(proyecto.urgencia)) {
       alert(`Ya hay un proyecto ${proyecto.urgencia} en la cola, no se puede añadir otro.`);
       return false;
     }
-    proyecto.estado = 3; // En espera
-    proyecto.historicoEstados.push({ estado: 3, fecha: new Date().toISOString() });
+    proyecto.estado = 3;
+    proyecto.historicoEstados.push({
+      estado: 3,
+      fecha: new Date().toISOString()
+    });
     return true;
   }
 
-  // Renderizar proyectos con barra de progreso estilo Amazon
-function renderProyectos() {
-  const container = document.getElementById('projectsContainer');
-  container.innerHTML = '';
+  function renderProyectos() {
+    const container = document.getElementById('projectsContainer');
+    container.innerHTML = '';
+    if (proyectos.length === 0) {
+      container.innerHTML = '<p>No hay proyectos.</p>';
+      return;
+    }
 
-  if (proyectos.length === 0) {
-    container.innerHTML = '<p>No hay proyectos.</p>';
-    return;
+    proyectos.sort((a, b) => {
+      if (a.prioridad !== b.prioridad) return b.prioridad - a.prioridad;
+      const aFechaCola = a.historicoEstados.find(h => h.estado === 3)?.fecha || '';
+      const bFechaCola = b.historicoEstados.find(h => h.estado === 3)?.fecha || '';
+      return new Date(aFechaCola) - new Date(bFechaCola);
+    });
+
+    proyectos.forEach(proyecto => {
+      const div = document.createElement('div');
+      div.classList.add('proyecto');
+      if (proyecto.pausa) div.classList.add('enPausa');
+
+      let progressHtml = `<div class="progressbar">`;
+      for (let i = 0; i < ESTACIONES.length; i++) {
+        let stepClass = '';
+        if (i < proyecto.estado) {
+          stepClass = 'step completed';
+        } else if (i === proyecto.estado) {
+          stepClass = 'step current';
+        } else {
+          stepClass = 'step';
+        }
+        progressHtml += `<div class="${stepClass}">${ESTACIONES[i]}</div>`;
+      }
+      progressHtml += `</div>`;
+
+      div.innerHTML = `
+        <h3>${proyecto.nombre} - <small>${proyecto.cliente}</small></h3>
+        <p><strong>Estado:</strong> ${ESTACIONES[proyecto.estado]}</p>
+        <p><strong>Descripción:</strong> ${proyecto.descripcion || 'Sin descripción'}</p>
+        <p><strong>Precio base:</strong> €${proyecto.precioBase.toFixed(2)}</p>
+        <p><strong>Urgencia:</strong> ${proyecto.urgencia} (+${(proyecto.incremento * 100).toFixed(0)}%)</p>
+        <p><strong>Precio con urgencia:</strong> €${proyecto.precioConUrgencia.toFixed(2)}</p>
+        <p><strong>Presupuesto:</strong> ${proyecto.presupuesto.estado}</p>
+        <p><strong>Cambios realizados:</strong> ${proyecto.cambios.solicitados} (Gratis hasta ${proyecto.cambios.gratis})</p>
+        ${proyecto.pausa ? `<p class="pausaInfo"><strong>En pausa:</strong> ${proyecto.pausa.motivo} por ${proyecto.pausa.quien} el ${new Date(proyecto.pausa.fecha).toLocaleString()}</p>` : ''}
+        ${progressHtml}
+        <div class="acciones">
+          ${renderAcciones(proyecto)}
+        </div>
+      `;
+      container.appendChild(div);
+    });
   }
 
-  // Ordenar proyectos: prioridad y orden de llegada (fecha primer estado 3)
-  proyectos.sort((a, b) => {
-    if (a.prioridad !== b.prioridad) return b.prioridad - a.prioridad;
-    const aFechaCola = a.historicoEstados.find(h => h.estado === 3)?.fecha || '';
-    const bFechaCola = b.historicoEstados.find(h => h.estado === 3)?.fecha || '';
-    return new Date(aFechaCola) - new Date(bFechaCola);
-  });
-
-  proyectos.forEach(proyecto => {
-    const div = document.createElement('div');
-    div.classList.add('proyecto');
-    if (proyecto.pausa) div.classList.add('enPausa');
-
-    // Crear barra de progreso con segmentos
-let progressHtml = `<div class="progressbar">`;
-for (let i = 0; i < ESTACIONES.length; i++) {
-  let stepClass = '';
-  if (i < proyecto.estado) {
-    stepClass = 'step completed';
-  } else if (i === proyecto.estado) {
-    stepClass = 'step current';
-  } else {
-    stepClass = 'step';
-  }
-  progressHtml += `<div class="${stepClass}">${ESTACIONES[i]}</div>`;
-}
-progressHtml += `</div>`;
-
-    div.innerHTML = `
-      <h3>${proyecto.nombre} - <small>${proyecto.cliente}</small></h3>
-      <p><strong>Estado:</strong> ${ESTACIONES[proyecto.estado]}</p>
-      <p><strong>Precio base:</strong> €${proyecto.precioBase.toFixed(2)}</p>
-      <p><strong>Urgencia:</strong> ${proyecto.urgencia} (+${(proyecto.incremento * 100).toFixed(0)}%)</p>
-      <p><strong>Precio con urgencia:</strong> €${proyecto.precioConUrgencia.toFixed(2)}</p>
-      <p><strong>Presupuesto:</strong> ${proyecto.presupuesto.estado}</p>
-      <p><strong>Cambios realizados:</strong> ${proyecto.cambios.solicitados} (Gratis hasta ${proyecto.cambios.gratis})</p>
-      ${proyecto.pausa ? `<p class="pausaInfo"><strong>En pausa:</strong> ${proyecto.pausa.motivo} por ${proyecto.pausa.quien} el ${new Date(proyecto.pausa.fecha).toLocaleString()}</p>` : ''}
-      ${progressHtml}
-      <div class="acciones">
-        ${renderAcciones(proyecto)}
-      </div>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-
-  // Render botones y controles según estado
   function renderAcciones(proyecto) {
     let html = '';
-
     switch (proyecto.estado) {
-      case 0: // Toma de contacto -> avanzar a Datos del proyecto
+      case 0:
         html += `<button onclick="avanzarEstado('${proyecto.id}')">Completar toma de contacto</button>`;
         break;
-
-      case 1: // Datos del proyecto -> avanzar a Presupuesto
+      case 1:
         html += `<button onclick="avanzarEstado('${proyecto.id}')">Completar datos del proyecto</button>`;
         break;
-
-      case 2: // Presupuesto -> marcar pendiente, aceptar o cancelar
+      case 2:
         html += `
           <button onclick="marcarPresupuesto('${proyecto.id}', 'pendiente')">Pendiente</button>
           <button onclick="marcarPresupuesto('${proyecto.id}', 'aceptado')">Aceptar presupuesto</button>
           <button onclick="marcarPresupuesto('${proyecto.id}', 'cancelado')">Cancelar proyecto</button>
         `;
         break;
-
-      case 3: // En espera (cola de trabajo) -> marcar urgencia, avanzar a En proceso, pausa
+      case 3:
         html += `
           <button onclick="avanzarEstado('${proyecto.id}')">Comenzar trabajo (En proceso)</button>
           ${proyecto.pausa ? `<button onclick="quitarPausa('${proyecto.id}')">Quitar pausa</button>` : `<button onclick="ponerPausa('${proyecto.id}')">Poner en pausa</button>`}
@@ -277,46 +285,40 @@ progressHtml += `</div>`;
           </label>
         `;
         break;
-
-      case 4: // En proceso -> añadir nota, poner pausa, avanzar a Realizado
+      case 4:
         html += `
           <button onclick="avanzarEstado('${proyecto.id}')">Marcar trabajo realizado</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
           ${proyecto.pausa ? `<button onclick="quitarPausa('${proyecto.id}')">Quitar pausa</button>` : `<button onclick="ponerPausa('${proyecto.id}')">Poner en pausa</button>`}
         `;
         break;
-
-      case 5: // Realizado -> marcar como enviado al cliente
+      case 5:
         html += `
           <button onclick="avanzarEstado('${proyecto.id}')">Enviar muestra al cliente</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
         `;
         break;
-
-      case 6: // Enviado al cliente -> esperar confirmación: aprobado o cambios solicitados
+      case 6:
         html += `
           <button onclick="clienteConfirma('${proyecto.id}', 'aprobado')">Cliente aprueba</button>
           <button onclick="clienteConfirma('${proyecto.id}', 'cambios')">Cliente solicita cambios</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
         `;
         break;
-
-      case 7: // Cambios solicitados -> añadir nota, volver a enviar
+      case 7:
         html += `
           <button onclick="avanzarEstado('${proyecto.id}')">Enviar versión corregida</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
         `;
         break;
-
-      case 8: // Vuelta a enviar -> esperar confirmación
+      case 8:
         html += `
           <button onclick="clienteConfirma('${proyecto.id}', 'aprobado')">Cliente aprueba</button>
           <button onclick="clienteConfirma('${proyecto.id}', 'cambios')">Cliente solicita más cambios</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
         `;
         break;
-
-      case 9: // Aprobado -> generar factura
+      case 9:
         if (!proyecto.facturado) {
           html += `<button onclick="generarFactura('${proyecto.id}')">Generar factura</button>`;
         } else {
@@ -324,76 +326,59 @@ progressHtml += `</div>`;
           html += `<button onclick="avanzarEstado('${proyecto.id}')">Marcar como pagado</button>`;
         }
         break;
-
-      case 10: // Factura generada
+      case 10:
         html += `
           <p>Factura generada el ${proyecto.facturaFecha ? new Date(proyecto.facturaFecha).toLocaleString() : 'N/A'}</p>
           <button onclick="marcarFacturaEnviada('${proyecto.id}')">Marcar factura enviada</button>
           <button onclick="avanzarEstado('${proyecto.id}')">Marcar pago recibido</button>
         `;
         break;
-
-      case 11: // Pagado
+      case 11:
         html += `
           <p>Pago recibido el ${proyecto.pagoFecha ? new Date(proyecto.pagoFecha).toLocaleString() : 'N/A'}</p>
           <button onclick="avanzarEstado('${proyecto.id}')">Enviar diseño / publicar / cerrar</button>
         `;
         break;
-
-      case 12: // Enviado y finalizado
+      case 12:
         html += `<p>Proyecto finalizado y cerrado.</p>`;
         break;
-
       default:
         html += `<p>Estado desconocido.</p>`;
     }
-
     return html;
   }
 
-  // Funciones para avanzar estado
   function avanzarEstado(id) {
     const proyecto = proyectos.find(p => p.id === id);
     if (!proyecto) return;
-
     if (proyecto.pausa) {
       alert('El proyecto está en pausa. Quita la pausa antes de avanzar.');
       return;
     }
-
     if (proyecto.estado === 2 && proyecto.presupuesto.estado !== 'aceptado') {
       alert('No puedes avanzar sin aceptar el presupuesto.');
       return;
     }
-
-    if (proyecto.estado === 3) {
-      // Al avanzar desde "En espera" a "En proceso", validar colas de urgencia
-      // Ya validado al entrar en cola, pero aquí se puede ajustar si quieres
-    }
-
     if (proyecto.estado < ESTACIONES.length - 1) {
       proyecto.estado++;
-      proyecto.historicoEstados.push({ estado: proyecto.estado, fecha: new Date().toISOString() });
-
-      // Registro fechas específicas
+      proyecto.historicoEstados.push({
+        estado: proyecto.estado,
+        fecha: new Date().toISOString()
+      });
       if (proyecto.estado === 9) proyecto.fechaAprobacion = new Date().toISOString();
       if (proyecto.estado === 10) proyecto.facturaFecha = new Date().toISOString();
       if (proyecto.estado === 11) proyecto.pagoFecha = new Date().toISOString();
       if (proyecto.estado === 12) proyecto.fechaEntrega = new Date().toISOString();
     }
-
     saveProjects();
     renderProyectos();
   }
 
-  // Marcar presupuesto
   function marcarPresupuesto(id, estado) {
     const proyecto = proyectos.find(p => p.id === id);
     if (!proyecto) return;
-
     proyecto.presupuesto.estado = estado;
     const ahora = new Date().toISOString();
-
     if (estado === 'aceptado') {
       proyecto.presupuesto.fechaAceptacion = ahora;
       if (agregarACola(proyecto) === false) {
@@ -402,24 +387,20 @@ progressHtml += `</div>`;
       }
     } else if (estado === 'cancelado') {
       proyecto.presupuesto.fechaCancelacion = ahora;
-      proyecto.estado = 99; // Estado cancelado arbitrario
+      proyecto.estado = 99;
     }
-
     saveProjects();
     renderProyectos();
   }
 
-  // Cambiar urgencia y recalc precio
   function cambiarUrgencia(id, nuevaUrgencia) {
     const proyecto = proyectos.find(p => p.id === id);
     if (!proyecto) return;
-
     if (!puedeAñadirCola(nuevaUrgencia)) {
       alert(`Ya hay un proyecto ${nuevaUrgencia} en la cola, no se puede añadir otro.`);
       renderProyectos();
       return;
     }
-
     proyecto.urgencia = nuevaUrgencia;
     proyecto.incremento = URGENCIA_RECARGOS[nuevaUrgencia];
     proyecto.precioConUrgencia = proyecto.precioBase * (1 + proyecto.incremento);
@@ -428,7 +409,6 @@ progressHtml += `</div>`;
     renderProyectos();
   }
 
-  // Poner/quitar pausa
   function ponerPausa(id) {
     const proyecto = proyectos.find(p => p.id === id);
     if (!proyecto) return;
@@ -442,6 +422,7 @@ progressHtml += `</div>`;
     saveProjects();
     renderProyectos();
   }
+
   function quitarPausa(id) {
     const proyecto = proyectos.find(p => p.id === id);
     if (!proyecto) return;
@@ -450,72 +431,91 @@ progressHtml += `</div>`;
     renderProyectos();
   }
 
-  // Añadir nota interna
   function agregarNotaInternaPrompt(id) {
     const proyecto = proyectos.find(p => p.id === id);
     if (!proyecto) return;
     const nota = prompt('Añadir nota interna:');
     if (!nota) return;
-    proyecto.notasInternas.push({ texto: nota, fecha: new Date().toISOString() });
+    proyecto.notasInternas.push({
+      texto: nota,
+      fecha: new Date().toISOString()
+    });
     saveProjects();
     renderProyectos();
   }
 
-  // Cliente confirma aprobación o solicita cambios
   function clienteConfirma(id, decision) {
     const proyecto = proyectos.find(p => p.id === id);
     if (!proyecto) return;
-
     if (decision === 'aprobado') {
       proyecto.confirmacionCliente = 'aprobado';
-      avanzarEstado(id); // Avanza a factura o siguiente paso
+      avanzarEstado(id);
     } else if (decision === 'cambios') {
       proyecto.confirmacionCliente = 'cambios';
-      proyecto.estado = 7; // Cambios solicitados
-      proyecto.historicoEstados.push({ estado: 7, fecha: new Date().toISOString() });
+      proyecto.estado = 7;
+      proyecto.historicoEstados.push({
+        estado: 7,
+        fecha: new Date().toISOString()
+      });
     }
     saveProjects();
     renderProyectos();
   }
 
-  // Generar factura
   function generarFactura(id) {
     const proyecto = proyectos.find(p => p.id === id);
     if (!proyecto) return;
-
     proyecto.facturado = true;
     proyecto.facturaFecha = new Date().toISOString();
     saveProjects();
     renderProyectos();
   }
 
-  // Marcar factura enviada
   function marcarFacturaEnviada(id) {
     alert('Factura marcada como enviada (puedes implementar email si quieres).');
   }
 
-  // Formulario crear proyecto
-  document.getElementById('projectForm').addEventListener('submit', e => {
+  // ====================================================================
+  //  MANEJADORES DE EVENTOS
+  // ====================================================================
+
+  document.getElementById('formCliente').addEventListener('submit', e => {
+    e.preventDefault();
+    const nombreCliente = document.getElementById('nombreCliente').value.trim();
+    const cifCliente = document.getElementById('cifCliente').value.trim();
+    const emailCliente = document.getElementById('emailCliente').value.trim();
+    const telefonoCliente = document.getElementById('telefonoCliente').value.trim();
+    const direccionCliente = document.getElementById('direccionCliente').value.trim();
+    if (!nombreCliente || !cifCliente || !emailCliente) {
+      alert('Completa al menos el nombre, CIF/NIF y email del cliente.');
+      return;
+    }
+    crearYGuardarCliente(nombreCliente, cifCliente, emailCliente, telefonoCliente, direccionCliente);
+    e.target.reset();
+  });
+
+  document.getElementById('formProyecto').addEventListener('submit', e => {
     e.preventDefault();
     const cliente = document.getElementById('clientName').value.trim();
     const nombre = document.getElementById('projectName').value.trim();
+    const descripcion = document.getElementById('projectDescription').value.trim();
     const precioBase = parseFloat(document.getElementById('basePrice').value);
     const urgencia = document.getElementById('urgency').value;
-
     if (!cliente || !nombre || isNaN(precioBase)) {
       alert('Completa todos los campos correctamente.');
       return;
     }
-
-    const proyecto = crearProyecto(cliente, nombre, precioBase, urgencia);
+    const proyecto = crearProyecto(cliente, nombre, descripcion, precioBase, urgencia);
     proyectos.push(proyecto);
     saveProjects();
     renderProyectos();
-
     e.target.reset();
   });
 
-  // Iniciar render
+  // ====================================================================
+  //  INICIALIZACIÓN
+  // ====================================================================
+
   renderProyectos();
 </script>
 
