@@ -1,110 +1,103 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dsign - Gestión de Proyectos</title>
-<link rel="stylesheet" href="estilos2.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dsign - Gestión de Proyectos</title>
+  <link rel="stylesheet" href="estilos2.css" />
 </head>
-<div>
+<body>
 
-<header class="header-principal">
-  <div class="logo-container">
-    <img src="dsign_nebula_7.png" alt="Logo Dsign Nebula" class="logo" />
+  <header class="header-principal">
+    <div class="logo-container">
+      <img src="dsign_nebula_7.png" alt="Logo Dsign Nebula" class="logo" />
+    </div>
+    <div class="titulo-texto">
+      <h1>Dsign</h1>
+    </div>
+  </header>
+
+  <div class="container-forms">
+    <div>
+      <h2>Crear nuevo cliente</h2>
+      <div class="form-row">
+        <form id="formCliente">
+          
+          <label for="nombreCliente">Nombre del cliente:</label>
+          <input type="text" id="nombreCliente" required>
+
+          <label for="cifCliente">CIF/NIF:</label>
+          <input type="text" id="cifCliente" required>
+
+          <label for="emailCliente">Email del cliente:</label>
+          <input type="email" id="emailCliente" required>
+
+          <label for="telefonoCliente">Teléfono:</label>
+          <input type="tel" id="telefonoCliente">
+
+          <label for="direccionCliente">Dirección:</label>
+          <input type="text" id="direccionCliente">
+
+          <button type="submit">Guardar cliente</button>
+        </form>
+      </div>
+    </div>
+
+    <div>
+      <h2>Crear nuevo proyecto</h2>
+      <div class="form-row">
+        <form id="formProyecto">
+
+          <label for="clientName">Cliente:</label>
+          <select id="clientName" required>
+            <option value="">Selecciona un cliente</option>
+          </select>
+
+          <label for="projectName">Nombre Proyecto:</label>
+          <input type="text" id="projectName" required>
+
+          <label for="projectDescription">Descripción del proyecto:</label>
+          <input type="text" id="projectDescription">
+
+          <label for="basePrice">Precio base (€):</label>
+          <input type="number" id="basePrice" min="0" required>
+
+          <label for="urgency">Urgencia:</label>
+          <select id="urgency">
+            <option value="normal">Normal</option>
+            <option value="urgente">Urgente (+10%)</option>
+            <option value="muyUrgente">Muy urgente (+20%)</option>
+            <option value="prioritario">Prioritario (+30%)</option>
+          </select>
+
+          <button type="submit">Crear proyecto</button>
+        </form>
+      </div>
+    </div>
   </div>
-  <div class="titulo-texto">
-    <h1>Dsign</h1>
-  </div>
-</header>
-
-<div class="container-forms">
-<div>
-<h2>Crear nuevo cliente</h2>
-<div class="form-row">
-  <form id="formCliente">
-    
-    <label for="nombreCliente">Nombre del cliente:</label>
-    <input type="text" id="nombreCliente" required>
-
-    <label for="cifCliente">CIF/NIF:</label>
-    <input type="text" id="cifCliente" required>
-
-    <label for="emailCliente">Email del cliente:</label>
-    <input type="email" id="emailCliente" required>
-
-    <label for="telefonoCliente">Teléfono:</label>
-    <input type="tel" id="telefonoCliente">
-
-    <label for="direccionCliente">Dirección:</label>
-    <input type="text" id="direccionCliente">
-
-    <button type="submit">Guardar cliente</button>
-  </form>
-</div>
-</div>
-
-
-<div>
-<h2>Crear nuevo proyecto</h2>
-<div class="form-row">
-  <form id="formProyecto">
-
-  <label for="clientName">Cliente:</label>
-  <input type="text" id="clientName" required>
-
-  <label for="projectName">Nombre Proyecto:</label>
-  <input type="text" id="projectName" required>
-
-  <label for="projectDescription">Descripción del proyecto:</label>
-  <input type="text" id="projectDescription">
-
-  <label for="basePrice">Precio base (€):</label>
-  <input type="number" id="basePrice" min="0" required>
-
-  <label for="urgency">Urgencia:</label>
-  <select id="urgency">
-    <option value="normal">Normal</option>
-    <option value="urgente">Urgente (+10%)</option>
-    <option value="muyUrgente">Muy urgente (+20%)</option>
-    <option value="prioritario">Prioritario (+30%)</option>
-  </select>
-
-  <button type="submit">Crear proyecto</button>
-</form>
-</div>
-</div>
-</div>
-
-
 
   <section id="projectsSection">
     <h2>Proyectos</h2>
     <div id="projectsContainer"></div>
   </section>
 
-</main>
-
 <script>
   // ====================================================================
   //  CONFIGURACIÓN Y VARIABLES GLOBALES
   // ====================================================================
 
-  // Constantes para las estaciones
   const ESTACIONES = [
     "Toma de contacto", "Datos del proyecto", "Presupuesto", "En espera", "En proceso", "Realizado", "Enviado al cliente", "Cambios solicitados", "Vuelta a enviar", "Aprobado", "Factura generada", "Pagado", "Enviado y finalizado"
   ];
 
-  // Urgencia y recargos
   const URGENCIA_RECARGOS = {
     normal: 0, urgente: 0.1, muyUrgente: 0.2, prioritario: 0.3
   };
 
-  // Límite de colas de urgencia (una por tipo)
   const MAX_EN_COLA = {
     prioritario: 1, muyUrgente: 1, urgente: 1
   };
 
-  // Carga clientes y proyectos de localStorage o inicia vacíos
   let clientes = JSON.parse(localStorage.getItem('dsign_clientes')) || [];
   let proyectos = JSON.parse(localStorage.getItem('dsign_proyectos')) || [];
 
@@ -118,6 +111,18 @@
 
   function saveProjects() {
     localStorage.setItem('dsign_proyectos', JSON.stringify(proyectos));
+  }
+  
+  // Rellenar el select de clientes con los datos del localStorage
+  function populateClientSelect() {
+    const clientSelect = document.getElementById('clientName');
+    clientSelect.innerHTML = '<option value="">Selecciona un cliente</option>';
+    clientes.forEach(cliente => {
+      const option = document.createElement('option');
+      option.value = cliente.nombre;
+      option.textContent = cliente.nombre;
+      clientSelect.appendChild(option);
+    });
   }
 
   // ====================================================================
@@ -136,8 +141,9 @@
     };
     clientes.push(nuevoCliente);
     saveClients();
+    populateClientSelect();
     alert(`Cliente "${nombre}" guardado con éxito.`);
-    console.log('Clientes guardados:', clientes); // Para depuración
+    console.log('Clientes guardados:', clientes);
   }
 
   // ====================================================================
@@ -153,7 +159,7 @@
       id,
       cliente,
       nombre,
-      descripcion, // <-- AÑADIDO
+      descripcion,
       precioBase,
       urgencia,
       incremento,
@@ -238,8 +244,8 @@
 
       div.innerHTML = `
         <h3>${proyecto.nombre} - <small>${proyecto.cliente}</small></h3>
-        <p><strong>Estado:</strong> ${ESTACIONES[proyecto.estado]}</p>
         <p><strong>Descripción:</strong> ${proyecto.descripcion || 'Sin descripción'}</p>
+        <p><strong>Estado:</strong> ${ESTACIONES[proyecto.estado]}</p>
         <p><strong>Precio base:</strong> €${proyecto.precioBase.toFixed(2)}</p>
         <p><strong>Urgencia:</strong> ${proyecto.urgencia} (+${(proyecto.incremento * 100).toFixed(0)}%)</p>
         <p><strong>Precio con urgencia:</strong> €${proyecto.precioConUrgencia.toFixed(2)}</p>
@@ -516,9 +522,8 @@
   //  INICIALIZACIÓN
   // ====================================================================
 
+  populateClientSelect();
   renderProyectos();
 </script>
-
 </body>
 </html>
-
