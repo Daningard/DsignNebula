@@ -1,529 +1,664 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dsign - Gestión de Proyectos</title>
-  <link rel="stylesheet" href="estilos.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nebula - Gestión de Proyectos</title>
+    <link rel="stylesheet" href="estilos.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+  </head>
+  <body>
+    <header class="header-principal">
+      <div class="logo-container">
+        <img src="dsign_nebula_2.png" alt="Logo Dsign Nebula" class="logo" />
+      </div>
+      <div class="titulo-texto">
+        <h1>Dsign</h1>
+      </div>
+    </header>
 
-  <header class="header-principal">
-    <div class="logo-container">
-      <img src="dsign_nebula_2.png" alt="Logo Dsign Nebula" class="logo" />
-    </div>
-    <div class="titulo-texto">
-      <h1>Dsign</h1>
-    </div>
-  </header>
+    <div class="container-forms">
+      <div>
+        <h2>Crear nuevo cliente</h2>
+        <div class="form-row">
+          <form id="formCliente">
+            <label for="nombreCliente">Nombre del cliente:</label>
+            <input type="text" id="nombreCliente" required />
 
-  <div class="container-forms">
-    <div>
-      <h2>Crear nuevo cliente</h2>
-      <div class="form-row">
-        <form id="formCliente">
-          
-          <label for="nombreCliente">Nombre del cliente:</label>
-          <input type="text" id="nombreCliente" required>
+            <label for="cifCliente">CIF/NIF:</label>
+            <input type="text" id="cifCliente" required />
 
-          <label for="cifCliente">CIF/NIF:</label>
-          <input type="text" id="cifCliente" required>
+            <label for="emailCliente">Email del cliente:</label>
+            <input type="email" id="emailCliente" required />
 
-          <label for="emailCliente">Email del cliente:</label>
-          <input type="email" id="emailCliente" required>
+            <label for="telefonoCliente">Teléfono:</label>
+            <input type="tel" id="telefonoCliente" />
 
-          <label for="telefonoCliente">Teléfono:</label>
-          <input type="tel" id="telefonoCliente">
+            <label for="direccionCliente">Dirección:</label>
+            <input type="text" id="direccionCliente" />
 
-          <label for="direccionCliente">Dirección:</label>
-          <input type="text" id="direccionCliente">
+            <button type="submit">Guardar cliente</button>
+          </form>
+        </div>
+      </div>
 
-          <button type="submit">Guardar cliente</button>
-        </form>
+      <div>
+        <h2>Crear nuevo proyecto</h2>
+        <div class="form-row">
+          <form id="formProyecto">
+            <label for="clientName">Cliente:</label>
+            <select id="clientName" required>
+              <option value="">Selecciona un cliente</option>
+            </select>
+
+            <label for="projectName">Nombre Proyecto:</label>
+            <input type="text" id="projectName" required />
+
+            <label for="projectDescription">Descripción del proyecto:</label>
+            <input type="text" id="projectDescription" />
+
+            <label for="basePrice">Precio base (€):</label>
+            <input type="number" id="basePrice" min="0" required />
+
+            <label for="urgency">Urgencia:</label>
+            <select id="urgency">
+              <option value="normal">Normal</option>
+              <option value="urgente">Urgente (+10%)</option>
+              <option value="muyUrgente">Muy urgente (+20%)</option>
+              <option value="prioritario">Prioritario (+30%)</option>
+            </select>
+
+            <button type="submit">Crear proyecto</button>
+          </form>
+        </div>
       </div>
     </div>
 
-    <div>
-      <h2>Crear nuevo proyecto</h2>
-      <div class="form-row">
-        <form id="formProyecto">
+    <section id="projectsSection">
+      <h2>Proyectos</h2>
+      <div id="projectsContainer"></div>
+    </section>
 
-          <label for="clientName">Cliente:</label>
-          <select id="clientName" required>
-            <option value="">Selecciona un cliente</option>
-          </select>
+    <script>
+      // ====================================================================
+      //  CONFIGURACIÓN Y VARIABLES GLOBALES
+      // ====================================================================
 
-          <label for="projectName">Nombre Proyecto:</label>
-          <input type="text" id="projectName" required>
+      const ESTACIONES = [
+        "Toma de contacto",
+        "Datos del proyecto",
+        "Presupuesto",
+        "En espera",
+        "En proceso",
+        "Realizado",
+        "Enviado al cliente",
+        "Cambios solicitados",
+        "Vuelta a enviar",
+        "Aprobado",
+        "Factura generada",
+        "Pagado",
+        "Enviado y finalizado",
+      ];
 
-          <label for="projectDescription">Descripción del proyecto:</label>
-          <input type="text" id="projectDescription">
+      const URGENCIA_RECARGOS = {
+        normal: 0,
+        urgente: 0.1,
+        muyUrgente: 0.2,
+        prioritario: 0.3,
+      };
 
-          <label for="basePrice">Precio base (€):</label>
-          <input type="number" id="basePrice" min="0" required>
+      const MAX_EN_COLA = {
+        prioritario: 1,
+        muyUrgente: 1,
+        urgente: 1,
+      };
 
-          <label for="urgency">Urgencia:</label>
-          <select id="urgency">
-            <option value="normal">Normal</option>
-            <option value="urgente">Urgente (+10%)</option>
-            <option value="muyUrgente">Muy urgente (+20%)</option>
-            <option value="prioritario">Prioritario (+30%)</option>
-          </select>
+      let clientes = JSON.parse(localStorage.getItem("dsign_clientes")) || [];
+      let proyectos = JSON.parse(localStorage.getItem("dsign_proyectos")) || [];
 
-          <button type="submit">Crear proyecto</button>
-        </form>
-      </div>
-    </div>
-  </div>
+      // ====================================================================
+      //  FUNCIONES DE GESTIÓN DE DATOS (GUARDAR Y CARGAR)
+      // ====================================================================
 
-  <section id="projectsSection">
-    <h2>Proyectos</h2>
-    <div id="projectsContainer"></div>
-  </section>
-
-<script>
-  // ====================================================================
-  //  CONFIGURACIÓN Y VARIABLES GLOBALES
-  // ====================================================================
-
-  const ESTACIONES = [
-    "Toma de contacto", "Datos del proyecto", "Presupuesto", "En espera", "En proceso", "Realizado", "Enviado al cliente", "Cambios solicitados", "Vuelta a enviar", "Aprobado", "Factura generada", "Pagado", "Enviado y finalizado"
-  ];
-
-  const URGENCIA_RECARGOS = {
-    normal: 0, urgente: 0.1, muyUrgente: 0.2, prioritario: 0.3
-  };
-
-  const MAX_EN_COLA = {
-    prioritario: 1, muyUrgente: 1, urgente: 1
-  };
-
-  let clientes = JSON.parse(localStorage.getItem('dsign_clientes')) || [];
-  let proyectos = JSON.parse(localStorage.getItem('dsign_proyectos')) || [];
-
-  // ====================================================================
-  //  FUNCIONES DE GESTIÓN DE DATOS (GUARDAR Y CARGAR)
-  // ====================================================================
-
-  function saveClients() {
-    localStorage.setItem('dsign_clientes', JSON.stringify(clientes));
-  }
-
-  function saveProjects() {
-    localStorage.setItem('dsign_proyectos', JSON.stringify(proyectos));
-  }
-  
-  // Rellenar el select de clientes con los datos del localStorage
-  function populateClientSelect() {
-    const clientSelect = document.getElementById('clientName');
-    clientSelect.innerHTML = '<option value="">Selecciona un cliente</option>';
-    clientes.forEach(cliente => {
-      const option = document.createElement('option');
-      option.value = cliente.nombre;
-      option.textContent = cliente.nombre;
-      clientSelect.appendChild(option);
-    });
-  }
-
-  // ====================================================================
-  //  FUNCIONES PARA CLIENTES
-  // ====================================================================
-
-  function crearYGuardarCliente(nombre, cif, email, telefono, direccion) {
-    const nuevoCliente = {
-      id: 'c' + Date.now(),
-      nombre,
-      cif,
-      email,
-      telefono,
-      direccion,
-      fechaCreacion: new Date().toISOString()
-    };
-    clientes.push(nuevoCliente);
-    saveClients();
-    populateClientSelect();
-    alert(`Cliente "${nombre}" guardado con éxito.`);
-    console.log('Clientes guardados:', clientes);
-  }
-
-  // ====================================================================
-  //  FUNCIONES PARA PROYECTOS
-  // ====================================================================
-
-  function crearProyecto(cliente, nombre, descripcion, precioBase, urgencia) {
-    const id = 'p' + Date.now();
-    const incremento = URGENCIA_RECARGOS[urgencia] || 0;
-    const precioConUrgencia = precioBase * (1 + incremento);
-
-    return {
-      id,
-      cliente,
-      nombre,
-      descripcion,
-      precioBase,
-      urgencia,
-      incremento,
-      precioConUrgencia,
-      estado: 0,
-      notasInternas: [],
-      pausa: null,
-      presupuesto: {
-        estado: 'pendiente',
-        fecha: null,
-        fechaAceptacion: null,
-        fechaCancelacion: null
-      },
-      prioridad: urgencia === 'prioritario' ? 3 : (urgencia === 'muyUrgente' ? 2 : (urgencia === 'urgente' ? 1 : 0)),
-      cambios: {
-        solicitados: 0,
-        gratis: 3
-      },
-      confirmacionCliente: null,
-      facturado: false,
-      pagado: false,
-      entregado: false,
-      historicoEstados: [{
-        estado: 0,
-        fecha: new Date().toISOString()
-      }]
-    };
-  }
-
-  function puedeAñadirCola(urgencia) {
-    if (urgencia === 'normal') return true;
-    const enCola = proyectos.filter(p => p.estado === 3 && p.urgencia === urgencia).length;
-    return enCola < MAX_EN_COLA[urgencia];
-  }
-
-  function agregarACola(proyecto) {
-    if (!puedeAñadirCola(proyecto.urgencia)) {
-      alert(`Ya hay un proyecto ${proyecto.urgencia} en la cola, no se puede añadir otro.`);
-      return false;
-    }
-    proyecto.estado = 3;
-    proyecto.historicoEstados.push({
-      estado: 3,
-      fecha: new Date().toISOString()
-    });
-    return true;
-  }
-
-  function renderProyectos() {
-    const container = document.getElementById('projectsContainer');
-    container.innerHTML = '';
-    if (proyectos.length === 0) {
-      container.innerHTML = '<p>No hay proyectos.</p>';
-      return;
-    }
-
-    proyectos.sort((a, b) => {
-      if (a.prioridad !== b.prioridad) return b.prioridad - a.prioridad;
-      const aFechaCola = a.historicoEstados.find(h => h.estado === 3)?.fecha || '';
-      const bFechaCola = b.historicoEstados.find(h => h.estado === 3)?.fecha || '';
-      return new Date(aFechaCola) - new Date(bFechaCola);
-    });
-
-    proyectos.forEach(proyecto => {
-      const div = document.createElement('div');
-      div.classList.add('proyecto');
-      if (proyecto.pausa) div.classList.add('enPausa');
-
-      let progressHtml = `<div class="progressbar">`;
-      for (let i = 0; i < ESTACIONES.length; i++) {
-        let stepClass = '';
-        if (i < proyecto.estado) {
-          stepClass = 'step completed';
-        } else if (i === proyecto.estado) {
-          stepClass = 'step current';
-        } else {
-          stepClass = 'step';
-        }
-        progressHtml += `<div class="${stepClass}">${ESTACIONES[i]}</div>`;
+      function saveClients() {
+        localStorage.setItem("dsign_clientes", JSON.stringify(clientes));
       }
-      progressHtml += `</div>`;
 
-      div.innerHTML = `
+      function saveProjects() {
+        localStorage.setItem("dsign_proyectos", JSON.stringify(proyectos));
+      }
+
+      // Rellenar el select de clientes con los datos del localStorage
+      function populateClientSelect() {
+        const clientSelect = document.getElementById("clientName");
+        clientSelect.innerHTML =
+          '<option value="">Selecciona un cliente</option>';
+        clientes.forEach((cliente) => {
+          const option = document.createElement("option");
+          option.value = cliente.nombre;
+          option.textContent = cliente.nombre;
+          clientSelect.appendChild(option);
+        });
+      }
+
+      // ====================================================================
+      //  FUNCIONES PARA CLIENTES
+      // ====================================================================
+
+      function crearYGuardarCliente(nombre, cif, email, telefono, direccion) {
+        const nuevoCliente = {
+          id: "c" + Date.now(),
+          nombre,
+          cif,
+          email,
+          telefono,
+          direccion,
+          fechaCreacion: new Date().toISOString(),
+        };
+        clientes.push(nuevoCliente);
+        saveClients();
+        populateClientSelect();
+        alert(`Cliente "${nombre}" guardado con éxito.`);
+        console.log("Clientes guardados:", clientes);
+      }
+
+      // ====================================================================
+      //  FUNCIONES PARA PROYECTOS
+      // ====================================================================
+
+      function crearProyecto(
+        cliente,
+        nombre,
+        descripcion,
+        precioBase,
+        urgencia
+      ) {
+        const id = "p" + Date.now();
+        const incremento = URGENCIA_RECARGOS[urgencia] || 0;
+        const precioConUrgencia = precioBase * (1 + incremento);
+
+        return {
+          id,
+          cliente,
+          nombre,
+          descripcion,
+          precioBase,
+          urgencia,
+          incremento,
+          precioConUrgencia,
+          estado: 0,
+          notasInternas: [],
+          pausa: null,
+          presupuesto: {
+            estado: "pendiente",
+            fecha: null,
+            fechaAceptacion: null,
+            fechaCancelacion: null,
+          },
+          prioridad:
+            urgencia === "prioritario"
+              ? 3
+              : urgencia === "muyUrgente"
+              ? 2
+              : urgencia === "urgente"
+              ? 1
+              : 0,
+          cambios: {
+            solicitados: 0,
+            gratis: 3,
+          },
+          confirmacionCliente: null,
+          facturado: false,
+          pagado: false,
+          entregado: false,
+          historicoEstados: [
+            {
+              estado: 0,
+              fecha: new Date().toISOString(),
+            },
+          ],
+        };
+      }
+
+      function puedeAñadirCola(urgencia) {
+        if (urgencia === "normal") return true;
+        const enCola = proyectos.filter(
+          (p) => p.estado === 3 && p.urgencia === urgencia
+        ).length;
+        return enCola < MAX_EN_COLA[urgencia];
+      }
+
+      function agregarACola(proyecto) {
+        if (!puedeAñadirCola(proyecto.urgencia)) {
+          alert(
+            `Ya hay un proyecto ${proyecto.urgencia} en la cola, no se puede añadir otro.`
+          );
+          return false;
+        }
+        proyecto.estado = 3;
+        proyecto.historicoEstados.push({
+          estado: 3,
+          fecha: new Date().toISOString(),
+        });
+        return true;
+      }
+
+      function renderProyectos() {
+        const container = document.getElementById("projectsContainer");
+        container.innerHTML = "";
+        if (proyectos.length === 0) {
+          container.innerHTML = "<p>No hay proyectos.</p>";
+          return;
+        }
+
+        proyectos.sort((a, b) => {
+          if (a.prioridad !== b.prioridad) return b.prioridad - a.prioridad;
+          const aFechaCola =
+            a.historicoEstados.find((h) => h.estado === 3)?.fecha || "";
+          const bFechaCola =
+            b.historicoEstados.find((h) => h.estado === 3)?.fecha || "";
+          return new Date(aFechaCola) - new Date(bFechaCola);
+        });
+
+        proyectos.forEach((proyecto) => {
+          const div = document.createElement("div");
+          div.classList.add("proyecto");
+          if (proyecto.pausa) div.classList.add("enPausa");
+
+          let progressHtml = `<div class="progressbar">`;
+          for (let i = 0; i < ESTACIONES.length; i++) {
+            let stepClass = "";
+            if (i < proyecto.estado) {
+              stepClass = "step completed";
+            } else if (i === proyecto.estado) {
+              stepClass = "step current";
+            } else {
+              stepClass = "step";
+            }
+            progressHtml += `<div class="${stepClass}">${ESTACIONES[i]}</div>`;
+          }
+          progressHtml += `</div>`;
+
+          div.innerHTML = `
         <h3>${proyecto.nombre} - <small>${proyecto.cliente}</small></h3>
-        <p><strong>Descripción:</strong> ${proyecto.descripcion || 'Sin descripción'}</p>
+        <p><strong>Descripción:</strong> ${
+          proyecto.descripcion || "Sin descripción"
+        }</p>
         <p><strong>Estado:</strong> ${ESTACIONES[proyecto.estado]}</p>
         <p><strong>Precio base:</strong> €${proyecto.precioBase.toFixed(2)}</p>
-        <p><strong>Urgencia:</strong> ${proyecto.urgencia} (+${(proyecto.incremento * 100).toFixed(0)}%)</p>
-        <p><strong>Precio con urgencia:</strong> €${proyecto.precioConUrgencia.toFixed(2)}</p>
+        <p><strong>Urgencia:</strong> ${proyecto.urgencia} (+${(
+            proyecto.incremento * 100
+          ).toFixed(0)}%)</p>
+        <p><strong>Precio con urgencia:</strong> €${proyecto.precioConUrgencia.toFixed(
+          2
+        )}</p>
         <p><strong>Presupuesto:</strong> ${proyecto.presupuesto.estado}</p>
-        <p><strong>Cambios realizados:</strong> ${proyecto.cambios.solicitados} (Gratis hasta ${proyecto.cambios.gratis})</p>
-        ${proyecto.pausa ? `<p class="pausaInfo"><strong>En pausa:</strong> ${proyecto.pausa.motivo} por ${proyecto.pausa.quien} el ${new Date(proyecto.pausa.fecha).toLocaleString()}</p>` : ''}
+        <p><strong>Cambios realizados:</strong> ${
+          proyecto.cambios.solicitados
+        } (Gratis hasta ${proyecto.cambios.gratis})</p>
+        ${
+          proyecto.pausa
+            ? `<p class="pausaInfo"><strong>En pausa:</strong> ${
+                proyecto.pausa.motivo
+              } por ${proyecto.pausa.quien} el ${new Date(
+                proyecto.pausa.fecha
+              ).toLocaleString()}</p>`
+            : ""
+        }
         ${progressHtml}
         <div class="acciones">
           ${renderAcciones(proyecto)}
         </div>
       `;
-      container.appendChild(div);
-    });
-  }
+          container.appendChild(div);
+        });
+      }
 
-  function renderAcciones(proyecto) {
-    let html = '';
-    switch (proyecto.estado) {
-      case 0:
-        html += `<button onclick="avanzarEstado('${proyecto.id}')">Completar toma de contacto</button>`;
-        break;
-      case 1:
-        html += `<button onclick="avanzarEstado('${proyecto.id}')">Completar datos del proyecto</button>`;
-        break;
-      case 2:
-        html += `
+      function renderAcciones(proyecto) {
+        let html = "";
+        switch (proyecto.estado) {
+          case 0:
+            html += `<button onclick="avanzarEstado('${proyecto.id}')">Completar toma de contacto</button>`;
+            break;
+          case 1:
+            html += `<button onclick="avanzarEstado('${proyecto.id}')">Completar datos del proyecto</button>`;
+            break;
+          case 2:
+            html += `
           <button onclick="marcarPresupuesto('${proyecto.id}', 'pendiente')">Pendiente</button>
           <button onclick="marcarPresupuesto('${proyecto.id}', 'aceptado')">Aceptar presupuesto</button>
           <button onclick="marcarPresupuesto('${proyecto.id}', 'cancelado')">Cancelar proyecto</button>
         `;
-        break;
-      case 3:
-        html += `
-          <button onclick="avanzarEstado('${proyecto.id}')">Comenzar trabajo (En proceso)</button>
-          ${proyecto.pausa ? `<button onclick="quitarPausa('${proyecto.id}')">Quitar pausa</button>` : `<button onclick="ponerPausa('${proyecto.id}')">Poner en pausa</button>`}
+            break;
+          case 3:
+            html += `
+          <button onclick="avanzarEstado('${
+            proyecto.id
+          }')">Comenzar trabajo (En proceso)</button>
+          ${
+            proyecto.pausa
+              ? `<button onclick="quitarPausa('${proyecto.id}')">Quitar pausa</button>`
+              : `<button onclick="ponerPausa('${proyecto.id}')">Poner en pausa</button>`
+          }
           <label>Urgencia:
             <select onchange="cambiarUrgencia('${proyecto.id}', this.value)">
-              <option value="normal" ${proyecto.urgencia === 'normal' ? 'selected' : ''}>Normal</option>
-              <option value="urgente" ${proyecto.urgencia === 'urgente' ? 'selected' : ''}>Urgente (+10%)</option>
-              <option value="muyUrgente" ${proyecto.urgencia === 'muyUrgente' ? 'selected' : ''}>Muy urgente (+20%)</option>
-              <option value="prioritario" ${proyecto.urgencia === 'prioritario' ? 'selected' : ''}>Prioritario (+30%)</option>
+              <option value="normal" ${
+                proyecto.urgencia === "normal" ? "selected" : ""
+              }>Normal</option>
+              <option value="urgente" ${
+                proyecto.urgencia === "urgente" ? "selected" : ""
+              }>Urgente (+10%)</option>
+              <option value="muyUrgente" ${
+                proyecto.urgencia === "muyUrgente" ? "selected" : ""
+              }>Muy urgente (+20%)</option>
+              <option value="prioritario" ${
+                proyecto.urgencia === "prioritario" ? "selected" : ""
+              }>Prioritario (+30%)</option>
             </select>
           </label>
         `;
-        break;
-      case 4:
-        html += `
-          <button onclick="avanzarEstado('${proyecto.id}')">Marcar trabajo realizado</button>
-          <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
-          ${proyecto.pausa ? `<button onclick="quitarPausa('${proyecto.id}')">Quitar pausa</button>` : `<button onclick="ponerPausa('${proyecto.id}')">Poner en pausa</button>`}
+            break;
+          case 4:
+            html += `
+          <button onclick="avanzarEstado('${
+            proyecto.id
+          }')">Marcar trabajo realizado</button>
+          <button onclick="agregarNotaInternaPrompt('${
+            proyecto.id
+          }')">Añadir nota interna</button>
+          ${
+            proyecto.pausa
+              ? `<button onclick="quitarPausa('${proyecto.id}')">Quitar pausa</button>`
+              : `<button onclick="ponerPausa('${proyecto.id}')">Poner en pausa</button>`
+          }
         `;
-        break;
-      case 5:
-        html += `
+            break;
+          case 5:
+            html += `
           <button onclick="avanzarEstado('${proyecto.id}')">Enviar muestra al cliente</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
         `;
-        break;
-      case 6:
-        html += `
+            break;
+          case 6:
+            html += `
           <button onclick="clienteConfirma('${proyecto.id}', 'aprobado')">Cliente aprueba</button>
           <button onclick="clienteConfirma('${proyecto.id}', 'cambios')">Cliente solicita cambios</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
         `;
-        break;
-      case 7:
-        html += `
+            break;
+          case 7:
+            html += `
           <button onclick="avanzarEstado('${proyecto.id}')">Enviar versión corregida</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
         `;
-        break;
-      case 8:
-        html += `
+            break;
+          case 8:
+            html += `
           <button onclick="clienteConfirma('${proyecto.id}', 'aprobado')">Cliente aprueba</button>
           <button onclick="clienteConfirma('${proyecto.id}', 'cambios')">Cliente solicita más cambios</button>
           <button onclick="agregarNotaInternaPrompt('${proyecto.id}')">Añadir nota interna</button>
         `;
-        break;
-      case 9:
-        if (!proyecto.facturado) {
-          html += `<button onclick="generarFactura('${proyecto.id}')">Generar factura</button>`;
-        } else {
-          html += `<p>Factura generada</p>`;
-          html += `<button onclick="avanzarEstado('${proyecto.id}')">Marcar como pagado</button>`;
+            break;
+          case 9:
+            if (!proyecto.facturado) {
+              html += `<button onclick="generarFactura('${proyecto.id}')">Generar factura</button>`;
+            } else {
+              html += `<p>Factura generada</p>`;
+              html += `<button onclick="avanzarEstado('${proyecto.id}')">Marcar como pagado</button>`;
+            }
+            break;
+          case 10:
+            html += `
+          <p>Factura generada el ${
+            proyecto.facturaFecha
+              ? new Date(proyecto.facturaFecha).toLocaleString()
+              : "N/A"
+          }</p>
+          <button onclick="marcarFacturaEnviada('${
+            proyecto.id
+          }')">Marcar factura enviada</button>
+          <button onclick="avanzarEstado('${
+            proyecto.id
+          }')">Marcar pago recibido</button>
+        `;
+            break;
+          case 11:
+            html += `
+          <p>Pago recibido el ${
+            proyecto.pagoFecha
+              ? new Date(proyecto.pagoFecha).toLocaleString()
+              : "N/A"
+          }</p>
+          <button onclick="avanzarEstado('${
+            proyecto.id
+          }')">Enviar diseño / publicar / cerrar</button>
+        `;
+            break;
+          case 12:
+            html += `<p>Proyecto finalizado y cerrado.</p>`;
+            break;
+          default:
+            html += `<p>Estado desconocido.</p>`;
         }
-        break;
-      case 10:
-        html += `
-          <p>Factura generada el ${proyecto.facturaFecha ? new Date(proyecto.facturaFecha).toLocaleString() : 'N/A'}</p>
-          <button onclick="marcarFacturaEnviada('${proyecto.id}')">Marcar factura enviada</button>
-          <button onclick="avanzarEstado('${proyecto.id}')">Marcar pago recibido</button>
-        `;
-        break;
-      case 11:
-        html += `
-          <p>Pago recibido el ${proyecto.pagoFecha ? new Date(proyecto.pagoFecha).toLocaleString() : 'N/A'}</p>
-          <button onclick="avanzarEstado('${proyecto.id}')">Enviar diseño / publicar / cerrar</button>
-        `;
-        break;
-      case 12:
-        html += `<p>Proyecto finalizado y cerrado.</p>`;
-        break;
-      default:
-        html += `<p>Estado desconocido.</p>`;
-    }
-    return html;
-  }
-
-  function avanzarEstado(id) {
-    const proyecto = proyectos.find(p => p.id === id);
-    if (!proyecto) return;
-    if (proyecto.pausa) {
-      alert('El proyecto está en pausa. Quita la pausa antes de avanzar.');
-      return;
-    }
-    if (proyecto.estado === 2 && proyecto.presupuesto.estado !== 'aceptado') {
-      alert('No puedes avanzar sin aceptar el presupuesto.');
-      return;
-    }
-    if (proyecto.estado < ESTACIONES.length - 1) {
-      proyecto.estado++;
-      proyecto.historicoEstados.push({
-        estado: proyecto.estado,
-        fecha: new Date().toISOString()
-      });
-      if (proyecto.estado === 9) proyecto.fechaAprobacion = new Date().toISOString();
-      if (proyecto.estado === 10) proyecto.facturaFecha = new Date().toISOString();
-      if (proyecto.estado === 11) proyecto.pagoFecha = new Date().toISOString();
-      if (proyecto.estado === 12) proyecto.fechaEntrega = new Date().toISOString();
-    }
-    saveProjects();
-    renderProyectos();
-  }
-
-  function marcarPresupuesto(id, estado) {
-    const proyecto = proyectos.find(p => p.id === id);
-    if (!proyecto) return;
-    proyecto.presupuesto.estado = estado;
-    const ahora = new Date().toISOString();
-    if (estado === 'aceptado') {
-      proyecto.presupuesto.fechaAceptacion = ahora;
-      if (agregarACola(proyecto) === false) {
-        proyecto.presupuesto.estado = 'pendiente';
-        return;
+        return html;
       }
-    } else if (estado === 'cancelado') {
-      proyecto.presupuesto.fechaCancelacion = ahora;
-      proyecto.estado = 99;
-    }
-    saveProjects();
-    renderProyectos();
-  }
 
-  function cambiarUrgencia(id, nuevaUrgencia) {
-    const proyecto = proyectos.find(p => p.id === id);
-    if (!proyecto) return;
-    if (!puedeAñadirCola(nuevaUrgencia)) {
-      alert(`Ya hay un proyecto ${nuevaUrgencia} en la cola, no se puede añadir otro.`);
-      renderProyectos();
-      return;
-    }
-    proyecto.urgencia = nuevaUrgencia;
-    proyecto.incremento = URGENCIA_RECARGOS[nuevaUrgencia];
-    proyecto.precioConUrgencia = proyecto.precioBase * (1 + proyecto.incremento);
-    proyecto.prioridad = nuevaUrgencia === 'prioritario' ? 3 : (nuevaUrgencia === 'muyUrgente' ? 2 : (nuevaUrgencia === 'urgente' ? 1 : 0));
-    saveProjects();
-    renderProyectos();
-  }
+      function avanzarEstado(id) {
+        const proyecto = proyectos.find((p) => p.id === id);
+        if (!proyecto) return;
+        if (proyecto.pausa) {
+          alert("El proyecto está en pausa. Quita la pausa antes de avanzar.");
+          return;
+        }
+        if (
+          proyecto.estado === 2 &&
+          proyecto.presupuesto.estado !== "aceptado"
+        ) {
+          alert("No puedes avanzar sin aceptar el presupuesto.");
+          return;
+        }
+        if (proyecto.estado < ESTACIONES.length - 1) {
+          proyecto.estado++;
+          proyecto.historicoEstados.push({
+            estado: proyecto.estado,
+            fecha: new Date().toISOString(),
+          });
+          if (proyecto.estado === 9)
+            proyecto.fechaAprobacion = new Date().toISOString();
+          if (proyecto.estado === 10)
+            proyecto.facturaFecha = new Date().toISOString();
+          if (proyecto.estado === 11)
+            proyecto.pagoFecha = new Date().toISOString();
+          if (proyecto.estado === 12)
+            proyecto.fechaEntrega = new Date().toISOString();
+        }
+        saveProjects();
+        renderProyectos();
+      }
 
-  function ponerPausa(id) {
-    const proyecto = proyectos.find(p => p.id === id);
-    if (!proyecto) return;
-    const motivo = prompt('Motivo de la pausa:');
-    if (!motivo) return;
-    proyecto.pausa = {
-      motivo,
-      quien: 'usuario',
-      fecha: new Date().toISOString()
-    };
-    saveProjects();
-    renderProyectos();
-  }
+      function marcarPresupuesto(id, estado) {
+        const proyecto = proyectos.find((p) => p.id === id);
+        if (!proyecto) return;
+        proyecto.presupuesto.estado = estado;
+        const ahora = new Date().toISOString();
+        if (estado === "aceptado") {
+          proyecto.presupuesto.fechaAceptacion = ahora;
+          if (agregarACola(proyecto) === false) {
+            proyecto.presupuesto.estado = "pendiente";
+            return;
+          }
+        } else if (estado === "cancelado") {
+          proyecto.presupuesto.fechaCancelacion = ahora;
+          proyecto.estado = 99;
+        }
+        saveProjects();
+        renderProyectos();
+      }
 
-  function quitarPausa(id) {
-    const proyecto = proyectos.find(p => p.id === id);
-    if (!proyecto) return;
-    proyecto.pausa = null;
-    saveProjects();
-    renderProyectos();
-  }
+      function cambiarUrgencia(id, nuevaUrgencia) {
+        const proyecto = proyectos.find((p) => p.id === id);
+        if (!proyecto) return;
+        if (!puedeAñadirCola(nuevaUrgencia)) {
+          alert(
+            `Ya hay un proyecto ${nuevaUrgencia} en la cola, no se puede añadir otro.`
+          );
+          renderProyectos();
+          return;
+        }
+        proyecto.urgencia = nuevaUrgencia;
+        proyecto.incremento = URGENCIA_RECARGOS[nuevaUrgencia];
+        proyecto.precioConUrgencia =
+          proyecto.precioBase * (1 + proyecto.incremento);
+        proyecto.prioridad =
+          nuevaUrgencia === "prioritario"
+            ? 3
+            : nuevaUrgencia === "muyUrgente"
+            ? 2
+            : nuevaUrgencia === "urgente"
+            ? 1
+            : 0;
+        saveProjects();
+        renderProyectos();
+      }
 
-  function agregarNotaInternaPrompt(id) {
-    const proyecto = proyectos.find(p => p.id === id);
-    if (!proyecto) return;
-    const nota = prompt('Añadir nota interna:');
-    if (!nota) return;
-    proyecto.notasInternas.push({
-      texto: nota,
-      fecha: new Date().toISOString()
-    });
-    saveProjects();
-    renderProyectos();
-  }
+      function ponerPausa(id) {
+        const proyecto = proyectos.find((p) => p.id === id);
+        if (!proyecto) return;
+        const motivo = prompt("Motivo de la pausa:");
+        if (!motivo) return;
+        proyecto.pausa = {
+          motivo,
+          quien: "usuario",
+          fecha: new Date().toISOString(),
+        };
+        saveProjects();
+        renderProyectos();
+      }
 
-  function clienteConfirma(id, decision) {
-    const proyecto = proyectos.find(p => p.id === id);
-    if (!proyecto) return;
-    if (decision === 'aprobado') {
-      proyecto.confirmacionCliente = 'aprobado';
-      avanzarEstado(id);
-    } else if (decision === 'cambios') {
-      proyecto.confirmacionCliente = 'cambios';
-      proyecto.estado = 7;
-      proyecto.historicoEstados.push({
-        estado: 7,
-        fecha: new Date().toISOString()
+      function quitarPausa(id) {
+        const proyecto = proyectos.find((p) => p.id === id);
+        if (!proyecto) return;
+        proyecto.pausa = null;
+        saveProjects();
+        renderProyectos();
+      }
+
+      function agregarNotaInternaPrompt(id) {
+        const proyecto = proyectos.find((p) => p.id === id);
+        if (!proyecto) return;
+        const nota = prompt("Añadir nota interna:");
+        if (!nota) return;
+        proyecto.notasInternas.push({
+          texto: nota,
+          fecha: new Date().toISOString(),
+        });
+        saveProjects();
+        renderProyectos();
+      }
+
+      function clienteConfirma(id, decision) {
+        const proyecto = proyectos.find((p) => p.id === id);
+        if (!proyecto) return;
+        if (decision === "aprobado") {
+          proyecto.confirmacionCliente = "aprobado";
+          avanzarEstado(id);
+        } else if (decision === "cambios") {
+          proyecto.confirmacionCliente = "cambios";
+          proyecto.estado = 7;
+          proyecto.historicoEstados.push({
+            estado: 7,
+            fecha: new Date().toISOString(),
+          });
+        }
+        saveProjects();
+        renderProyectos();
+      }
+
+      function generarFactura(id) {
+        const proyecto = proyectos.find((p) => p.id === id);
+        if (!proyecto) return;
+        proyecto.facturado = true;
+        proyecto.facturaFecha = new Date().toISOString();
+        saveProjects();
+        renderProyectos();
+      }
+
+      function marcarFacturaEnviada(id) {
+        alert(
+          "Factura marcada como enviada (puedes implementar email si quieres)."
+        );
+      }
+
+      // ====================================================================
+      //  MANEJADORES DE EVENTOS
+      // ====================================================================
+
+      document.getElementById("formCliente").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const nombreCliente = document
+          .getElementById("nombreCliente")
+          .value.trim();
+        const cifCliente = document.getElementById("cifCliente").value.trim();
+        const emailCliente = document
+          .getElementById("emailCliente")
+          .value.trim();
+        const telefonoCliente = document
+          .getElementById("telefonoCliente")
+          .value.trim();
+        const direccionCliente = document
+          .getElementById("direccionCliente")
+          .value.trim();
+        if (!nombreCliente || !cifCliente || !emailCliente) {
+          alert("Completa al menos el nombre, CIF/NIF y email del cliente.");
+          return;
+        }
+        crearYGuardarCliente(
+          nombreCliente,
+          cifCliente,
+          emailCliente,
+          telefonoCliente,
+          direccionCliente
+        );
+        e.target.reset();
       });
-    }
-    saveProjects();
-    renderProyectos();
-  }
 
-  function generarFactura(id) {
-    const proyecto = proyectos.find(p => p.id === id);
-    if (!proyecto) return;
-    proyecto.facturado = true;
-    proyecto.facturaFecha = new Date().toISOString();
-    saveProjects();
-    renderProyectos();
-  }
+      document
+        .getElementById("formProyecto")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const cliente = document.getElementById("clientName").value.trim();
+          const nombre = document.getElementById("projectName").value.trim();
+          const descripcion = document
+            .getElementById("projectDescription")
+            .value.trim();
+          const precioBase = parseFloat(
+            document.getElementById("basePrice").value
+          );
+          const urgencia = document.getElementById("urgency").value;
+          if (!cliente || !nombre || isNaN(precioBase)) {
+            alert("Completa todos los campos correctamente.");
+            return;
+          }
+          const proyecto = crearProyecto(
+            cliente,
+            nombre,
+            descripcion,
+            precioBase,
+            urgencia
+          );
+          proyectos.push(proyecto);
+          saveProjects();
+          renderProyectos();
+          e.target.reset();
+        });
 
-  function marcarFacturaEnviada(id) {
-    alert('Factura marcada como enviada (puedes implementar email si quieres).');
-  }
+      // ====================================================================
+      //  INICIALIZACIÓN
+      // ====================================================================
 
-  // ====================================================================
-  //  MANEJADORES DE EVENTOS
-  // ====================================================================
-
-  document.getElementById('formCliente').addEventListener('submit', e => {
-    e.preventDefault();
-    const nombreCliente = document.getElementById('nombreCliente').value.trim();
-    const cifCliente = document.getElementById('cifCliente').value.trim();
-    const emailCliente = document.getElementById('emailCliente').value.trim();
-    const telefonoCliente = document.getElementById('telefonoCliente').value.trim();
-    const direccionCliente = document.getElementById('direccionCliente').value.trim();
-    if (!nombreCliente || !cifCliente || !emailCliente) {
-      alert('Completa al menos el nombre, CIF/NIF y email del cliente.');
-      return;
-    }
-    crearYGuardarCliente(nombreCliente, cifCliente, emailCliente, telefonoCliente, direccionCliente);
-    e.target.reset();
-  });
-
-  document.getElementById('formProyecto').addEventListener('submit', e => {
-    e.preventDefault();
-    const cliente = document.getElementById('clientName').value.trim();
-    const nombre = document.getElementById('projectName').value.trim();
-    const descripcion = document.getElementById('projectDescription').value.trim();
-    const precioBase = parseFloat(document.getElementById('basePrice').value);
-    const urgencia = document.getElementById('urgency').value;
-    if (!cliente || !nombre || isNaN(precioBase)) {
-      alert('Completa todos los campos correctamente.');
-      return;
-    }
-    const proyecto = crearProyecto(cliente, nombre, descripcion, precioBase, urgencia);
-    proyectos.push(proyecto);
-    saveProjects();
-    renderProyectos();
-    e.target.reset();
-  });
-
-  // ====================================================================
-  //  INICIALIZACIÓN
-  // ====================================================================
-
-  populateClientSelect();
-  renderProyectos();
-</script>
-</body>
+      populateClientSelect();
+      renderProyectos();
+    </script>
+  </body>
 </html>
